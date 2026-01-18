@@ -36,7 +36,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'NextJS App Backend API',
+    message: 'SmartBazar Backend API',
     version: '1.0.0',
     endpoints: {
       health: '/health',
