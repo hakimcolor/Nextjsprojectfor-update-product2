@@ -8,7 +8,7 @@ const {
   deleteItem,
   getItemsCount,
   getItemsByCategory,
-} = require('../data/items');
+} = require('../data/itemsMongoDB');
 const { authenticateUser, requireAdmin } = require('../middleware/auth');
 const {
   validateItem,
@@ -25,13 +25,13 @@ router.get(
     console.log('Request headers:', req.headers);
 
     const { category, limit, offset, sort } = req.query;
-    let items = getAllItems();
+    let items = await getAllItems();
 
     console.log('Total items found:', items.length);
 
     // Filter by category if provided
     if (category) {
-      items = getItemsByCategory(category);
+      items = await getItemsByCategory(category);
       console.log('Filtered by category:', category, 'Items:', items.length);
     }
 
@@ -66,7 +66,7 @@ router.get(
     const response = {
       success: true,
       data: items,
-      total: getItemsCount(),
+      total: await getItemsCount(),
       message: 'Items retrieved successfully',
     };
 
@@ -84,7 +84,7 @@ router.get(
   authenticateUser,
   requireAdmin,
   asyncHandler(async (req, res) => {
-    const items = getAllItems();
+    const items = await getAllItems();
     const categories = [...new Set(items.map((item) => item.category))];
 
     const stats = {
@@ -113,7 +113,7 @@ router.get(
   '/:id',
   validateId,
   asyncHandler(async (req, res) => {
-    const item = getItemById(req.params.id);
+    const item = await getItemById(req.params.id);
 
     if (!item) {
       return res.status(404).json({
@@ -137,7 +137,7 @@ router.post(
   requireAdmin,
   validateItem,
   asyncHandler(async (req, res) => {
-    const newItem = addItem(req.body);
+    const newItem = await addItem(req.body);
 
     res.status(201).json({
       success: true,
@@ -155,7 +155,7 @@ router.put(
   validateId,
   validateItemUpdate,
   asyncHandler(async (req, res) => {
-    const updatedItem = updateItem(req.params.id, req.body);
+    const updatedItem = await updateItem(req.params.id, req.body);
 
     if (!updatedItem) {
       return res.status(404).json({
@@ -179,7 +179,7 @@ router.delete(
   requireAdmin,
   validateId,
   asyncHandler(async (req, res) => {
-    const deleted = deleteItem(req.params.id);
+    const deleted = await deleteItem(req.params.id);
 
     if (!deleted) {
       return res.status(404).json({
