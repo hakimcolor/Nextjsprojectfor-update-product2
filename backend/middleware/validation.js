@@ -1,4 +1,5 @@
 const { body, param, validationResult } = require('express-validator');
+const { ObjectId } = require('mongodb');
 
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
@@ -112,7 +113,12 @@ const validateLogin = [
 ];
 
 const validateId = [
-  param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
+  param('id').custom((value) => {
+    if (!ObjectId.isValid(value)) {
+      throw new Error('Invalid ID format');
+    }
+    return true;
+  }),
 
   handleValidationErrors,
 ];
