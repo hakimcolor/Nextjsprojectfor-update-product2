@@ -24,7 +24,7 @@ router.get(
     console.log('GET /api/items called');
     console.log('Request headers:', req.headers);
 
-    const { category, limit, offset } = req.query;
+    const { category, limit, offset, sort } = req.query;
     let items = getAllItems();
 
     console.log('Total items found:', items.length);
@@ -34,6 +34,26 @@ router.get(
       items = getItemsByCategory(category);
       console.log('Filtered by category:', category, 'Items:', items.length);
     }
+
+    // Sort items - default to newest first
+    const sortBy = sort || 'newest';
+    if (sortBy === 'newest') {
+      items = items.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+    } else if (sortBy === 'oldest') {
+      items = items.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+    } else if (sortBy === 'price-low') {
+      items = items.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      items = items.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name') {
+      items = items.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    console.log('Sorted by:', sortBy);
 
     // Apply pagination if provided
     if (limit || offset) {
