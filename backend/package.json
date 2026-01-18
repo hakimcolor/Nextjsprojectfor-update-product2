@@ -1,7 +1,7 @@
 {
-  "name": "nextjs-app-backend",
+  "name": "smartbazar-backend",
   "version": "1.0.0",
-  "description": "Backend server for NextJS e-commerce app",
+  "description": "Backend server for SmartBazar e-commerce app",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

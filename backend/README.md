@@ -1,6 +1,6 @@
-# NextJS App Backend
+# SmartBazar Backend
 
-A Node.js/Express backend server for the NextJS e-commerce application.
+A Node.js/Express backend server for the SmartBazar e-commerce application.
 
 ## Features
 
