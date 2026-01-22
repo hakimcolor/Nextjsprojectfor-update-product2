@@ -4,26 +4,12 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
-const { connectDB } = require('./config/database');
-const { initializeDatabase } = require('./data/itemsMongoDB');
 const itemsRoutes = require('./routes/items');
 const authRoutes = require('./routes/auth');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-
-// Initialize MongoDB connection
-const initializeApp = async () => {
-  try {
-    await connectDB();
-    await initializeDatabase();
-    console.log('✅ Application initialized successfully');
-  } catch (error) {
-    console.error('❌ Failed to initialize application:', error);
-    process.exit(1);
-  }
-};
 
 // Trust proxy for Vercel deployment
 app.set('trust proxy', 1);
@@ -56,7 +42,8 @@ app.get('/', (req, res) => {
       health: '/health',
       items: '/api/items',
       auth: '/api/auth',
-      test: '/test-cors',
+      testCors: '/test-cors',
+      debugDb: '/debug/db',
     },
     timestamp: new Date().toISOString(),
   });
@@ -71,6 +58,28 @@ app.get('/test-cors', (req, res) => {
     userAgent: req.headers['user-agent'],
     timestamp: new Date().toISOString(),
   });
+});
+
+// Debug endpoint for MongoDB connection
+app.get('/debug/db', async (req, res) => {
+  try {
+    const { getAllItems } = require('./data/itemsMongoDB');
+    const items = await getAllItems();
+    res.status(200).json({
+      success: true,
+      message: 'Database connection successful',
+      itemCount: items.length,
+      sampleItem: items[0] || null,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed',
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // Health check endpoint
@@ -99,18 +108,12 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 // Start server
-const startServer = async () => {
-  await initializeApp();
-
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📱 Environment: ${process.env.NODE_ENV}`);
-    console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN}`);
-    console.log(`📊 Health check: https://nextappbackend2.vercel.app/health`);
-    console.log(`🗄️  MongoDB connected to JoBTask database`);
-  });
-};
-
-startServer().catch(console.error);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📱 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN}`);
+  console.log(`📊 Health check: https://nextappbackend2.vercel.app/health`);
+  console.log(`🗄️  MongoDB will connect on first request`);
+});
 
 module.exports = app;

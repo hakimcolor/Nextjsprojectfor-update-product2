@@ -1,4 +1,3 @@
-const { getDB } = require('../config/database');
 const { ObjectId } = require('mongodb');
 
 const COLLECTION_NAME = 'alldata';
@@ -79,10 +78,21 @@ const sampleItems = [
   },
 ];
 
+// Helper function to ensure database connection
+const ensureConnection = async () => {
+  const { connectDB } = require('../config/database');
+  try {
+    return await connectDB();
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    throw error;
+  }
+};
+
 // Initialize database with sample data if empty
 const initializeDatabase = async () => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
 
     const count = await collection.countDocuments();
@@ -92,13 +102,20 @@ const initializeDatabase = async () => {
     }
   } catch (error) {
     console.error('❌ Error initializing database:', error);
+    throw error;
   }
 };
 
 const getAllItems = async () => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
+
+    // Initialize if empty
+    const count = await collection.countDocuments();
+    if (count === 0) {
+      await initializeDatabase();
+    }
 
     const items = await collection.find({}).toArray();
 
@@ -116,7 +133,7 @@ const getAllItems = async () => {
 
 const getItemById = async (id) => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
 
     const item = await collection.findOne({ _id: new ObjectId(id) });
@@ -137,7 +154,7 @@ const getItemById = async (id) => {
 
 const addItem = async (itemData) => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
 
     const newItem = {
@@ -167,7 +184,7 @@ const addItem = async (itemData) => {
 
 const updateItem = async (id, updateData) => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
 
     const updateDoc = {
@@ -197,7 +214,7 @@ const updateItem = async (id, updateData) => {
 
 const deleteItem = async (id) => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
 
     const result = await collection.deleteOne({ _id: new ObjectId(id) });
@@ -211,7 +228,7 @@ const deleteItem = async (id) => {
 
 const getItemsCount = async () => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
 
     return await collection.countDocuments();
@@ -223,7 +240,7 @@ const getItemsCount = async () => {
 
 const getItemsByCategory = async (category) => {
   try {
-    const db = getDB();
+    const db = await ensureConnection();
     const collection = db.collection(COLLECTION_NAME);
 
     const items = await collection
